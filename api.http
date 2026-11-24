@@ -1,0 +1,33 @@
+### 1. Iniciar sesión como Administrador
+POST http://localhost:3000/api/login
+Content-Type: application/json
+
+{
+  "email": "admin@escuela.mx",
+  "password": "admin123"
+}
+
+### 2. Registrar un estudiante (Solo Administrador)
+# Reemplaza el token de abajo con el token largo que te salió en el login de arriba
+POST http://localhost:3000/api/estudiantes
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkBlc2N1ZWxhLm14Iiwicm9sIjoiQURNSU5JU1RSQURPUiIsImlhdCI6MTc5NTQ2OTQzOCwiZXhwIjoxNzk1NDk4MjM4fQ.2hiOflZbONwc8MYyBiJUs_2xP2DadQsA_Jub-cR5duc
+{
+  "nombre": "Carlos Mendoza",
+  "email": "carlos@escuela.mx",
+  "password": "password123",
+  "fechaNac": "2004-08-15"
+}
+
+### 3. Iniciar sesión como Estudiante (Para obtener su token)
+POST http://localhost:3000/api/login
+Content-Type: application/json
+{
+  "email": "carlos@escuela.mx",
+  "password": "password123"
+}
+
+### 4. Consultar boleta del estudiante (Ruta de Estudiante)
+# Reemplaza el token de abajo con el token que te devuelva el login del estudiante
+GET http://localhost:3000/api/mi-boleta
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJjYXJsb3NAZXNjdWVsYS5teCIsInJvbCI6IkVTVFVESUFOVEUiLCJpYXQiOjE3OTQ5MzE2NjEsImV4cCI6MTc5NDk2MDQ2MX0.ot9vF5Qg0kv5SlIXmSzx_MdmtzGpalwUripudsHfRF8

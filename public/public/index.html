@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control Escolar — Neon & Prisma</title>
+  <style>
+    :root {
+      --bg-canvas: #eef4fb;
+      --sidebar-bg: #0b2545;
+      --sidebar-hover: #13315c;
+      --sidebar-active: #1d5fd6;
+      --surface: #ffffff;
+      --surface-tint: #f4f8fd;
+      --accent: #1d5fd6;
+      --accent-dark: #1446a0;
+      --accent-soft: #dbeafe;
+      --accent-text: #1e3a8a;
+      --danger: #b91c1c;
+      --danger-dark: #991b1b;
+      --text: #0f172a;
+      --muted: #64748b;
+      --line: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: var(--bg-canvas); color: var(--text); }
+
+    /* PANTALLA DE ACCESO CENTRADA */
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--sidebar-bg) 0%, #16428a 100%);
+    }
+    .auth-box {
+      width: 100%;
+      max-width: 440px;
+      background: var(--surface);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 20px 45px rgba(2, 12, 27, 0.35);
+    }
+    .auth-brand { margin-bottom: 18px; }
+    .auth-brand h1 { margin: 0; font-size: 1.4rem; color: var(--sidebar-bg); }
+    .auth-brand p { margin: 4px 0 0 0; font-size: 0.85rem; color: var(--muted); }
+
+    .mode-switch {
+      display: flex;
+      background: var(--bg-canvas);
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 18px;
+    }
+    .mode-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .mode-btn.active {
+      background: var(--surface);
+      color: var(--accent);
+      box-shadow: 0 2px 6px rgba(11, 37, 69, 0.12);
+    }
+
+    /* LAYOUT CON SIDEBAR LATERAL */
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 255px;
+      background: var(--sidebar-bg);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 22px 16px;
+      flex-shrink: 0;
+    }
+    .sidebar-top h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      line-height: 1.3;
+    }
+    .sidebar-top small {
+      display: block;
+      color: #93c5fd;
+      margin-top: 4px;
+      font-size: 0.78rem;
+    }
+
+    .nav-list {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .nav-item {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: #dbeafe;
+      border: none;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .nav-item:hover { background: var(--sidebar-hover); }
+    .nav-item.active { background: var(--sidebar-active); color: #ffffff; }
+
+    .sidebar-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.14);
+      padding-top: 14px;
+      font-size: 0.82rem;
+    }
+    .role-tag {
+      display: inline-block;
+      margin: 6px 0 10px 0;
+      background: rgba(147, 197, 253, 0.2);
+      color: #bfdbfe;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    /* CONTENIDO PRINCIPAL */
+    .content-area {
+      flex: 1;
+      padding: 26px 28px;
+      overflow-x: hidden;
+    }
+    .top-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .top-strip h1 { margin: 0; font-size: 1.4rem; color: var(--sidebar-bg); }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+      max-width: 960px;
+    }
+    .panel h3 {
+      margin: 0 0 14px 0;
+      font-size: 1.05rem;
+      color: var(--sidebar-bg);
+    }
+
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #334155;
+    }
+    .field input, .field select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: var(--surface-tint);
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: #ffffff;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--accent-dark); }
+    .btn-light {
+      background: var(--accent-soft);
+      color: var(--accent-text);
+    }
+    .btn-light:hover { background: #bfdbfe; }
+    .btn-danger {
+      background: var(--danger);
+      color: #ffffff;
+    }
+    .btn-danger:hover { background: var(--danger-dark); }
+    .btn-sm-logout {
+      width: 100%;
+      background: rgba(239, 68, 68, 0.2);
+      color: #fecaca;
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-sm-logout:hover { background: rgba(239, 68, 68, 0.35); }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .table-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th {
+      background: #e0ecfa;
+      color: var(--sidebar-bg);
+      text-align: left;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    tr:last-child td { border-bottom: none; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.88rem;
+      display: none;
+      z-index: 2000;
+    }
+    .toast.ok { display: block; background: var(--accent); }
+    .toast.err { display: block; background: var(--danger); }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 780px) {
+      .app-shell { flex-direction: column; }
+      .sidebar { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN / REGISTRO -->
+  <div id="auth-view" class="auth-page">
+    <div class="auth-box">
+      <div class="auth-brand">
+        <h1>Control Escolar</h1>
+        <p>Neon PostgreSQL · Prisma ORM · JWT</p>
+      </div>
+
+      <div class="mode-switch">
+        <button type="button" id="btn-mode-login" class="mode-btn active">Iniciar Sesión</button>
+        <button type="button" id="btn-mode-reg" class="mode-btn">Registrarse</button>
+      </div>
+
+      <form id="login-form">
+        <div class="field">
+          <label>Correo electrónico</label>
+          <input type="email" id="login-email" placeholder="admin@escuela.mx" required />
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="login-password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn" style="width: 100%; margin-top: 6px;">Entrar</button>
+      </form>
+
+      <form id="register-form" class="hidden">
+        <div class="field">
+          <label>Rol</label>
+          <select id="reg-rol">
+            <option value="ESTUDIANTE">Estudiante</option>
+            <option value="ADMINISTRADOR">Administrador</option>
+          </select>
+        </div>
+        <div class="field" id="reg-nombre-box">
+          <label>Nombre completo</label>
+          <input type="text" id="reg-nombre" placeholder="Nombre del alumno" />
+        </div>
+        <div class="field">
+          <label>Correo electrónico</label>
+          <input type="email" id="reg-email" placeholder="correo@escuela.mx" required />
+        </div>
+        <div class="field" id="reg-fecha-box">
+          <label>Fecha de nacimiento</label>
+          <input type="date" id="reg-fecha" />
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="reg-password" placeholder="••••••••" required />
+        </div>
+        <button type="submit" class="btn" style="width: 100%; margin-top: 6px;">Crear Cuenta</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APLICACIÓN PRINCIPAL -->
+  <div id="app-view" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <h2>Portal Escolar</h2>
+        <small>Neon + Prisma ORM</small>
+
+        <!-- MENÚ ADMIN -->
+        <nav id="admin-nav" class="nav-list hidden">
+          <button type="button" class="nav-item active" data-tab="tab-estudiantes">Estudiantes (Alta / Baja)</button>
+          <button type="button" class="nav-item" data-tab="tab-academico">Cursos, Inscripción y Notas</button>
+          <button type="button" class="nav-item" data-tab="tab-consultas">Consultas y Vistas SQL</button>
+        </nav>
+
+        <!-- MENÚ ESTUDIANTE -->
+        <nav id="student-nav" class="nav-list hidden">
+          <button type="button" class="nav-item active" data-tab="tab-mi-boleta">Mi Boleta</button>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div id="user-email-label" style="word-break: break-all;"></div>
+        <span id="user-role-label" class="role-tag"></span>
+        <button type="button" id="logout-btn" class="btn-sm-logout">Cerrar Sesión</button>
+      </div>
+    </aside>
+
+    <main class="content-area">
+      <div class="top-strip">
+        <h1 id="page-heading">Gestión de Estudiantes</h1>
+      </div>
+
+      <!-- SECCIÓN ADMIN 1: ALTA Y BAJA ESTUDIANTE -->
+      <div id="tab-estudiantes" class="panel admin-tab hidden">
+        <div class="form-grid-2" style="gap: 24px;">
+          <div>
+            <h3>Alta de Estudiante</h3>
+            <form id="form-alta-estudiante">
+              <div class="field">
+                <label>Nombre completo</label>
+                <input type="text" id="est-nombre" required />
+              </div>
+              <div class="field">
+                <label>Correo electrónico</label>
+                <input type="email" id="est-email" required />
+              </div>
+              <div class="field">
+                <label>Fecha de nacimiento</label>
+                <input type="date" id="est-fecha" />
+              </div>
+              <div class="field">
+                <label>Contraseña</label>
+                <input type="password" id="est-pass" placeholder="Por defecto: 123456" />
+              </div>
+              <button type="submit" class="btn">Guardar Estudiante</button>
+            </form>
+          </div>
+
+          <div style="border-left: 1px solid var(--line); padding-left: 20px;">
+            <h3 style="color: var(--danger);">Baja de Estudiante</h3>
+            <form id="form-baja-estudiante">
+              <div class="field">
+                <label>ID del Estudiante</label>
+                <input type="number" id="baja-id" min="1" placeholder="Ej. 1" required />
+              </div>
+              <button type="submit" class="btn btn-danger">Dar de Baja</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN ADMIN 2: CURSOS, INSCRIPCIÓN Y CALIFICACIONES -->
+      <div id="tab-academico" class="panel admin-tab hidden">
+        <div class="form-grid-2" style="gap: 20px;">
+          <div>
+            <h3>Nuevo Curso</h3>
+            <form id="form-nuevo-curso">
+              <div class="field">
+                <label>Nombre del curso</label>
+                <input type="text" id="cur-nombre" required />
+              </div>
+              <div class="field">
+                <label>Créditos</label>
+                <input type="number" id="cur-creditos" value="5" min="1" required />
+              </div>
+              <button type="submit" class="btn">Guardar Curso</button>
+            </form>
+          </div>
+
+          <div>
+            <h3>Inscribir Alumno</h3>
+            <form id="form-inscribir">
+              <div class="field">
+                <label>ID Estudiante</label>
+                <input type="number" id="ins-estudiante" min="1" required />
+              </div>
+              <div class="field">
+                <label>ID Curso</label>
+                <input type="number" id="ins-curso" min="1" required />
+              </div>
+              <button type="submit" class="btn">Inscribir</button>
+            </form>
+          </div>
+
+          <div>
+            <h3>Registrar Calificación</h3>
+            <form id="form-calificacion">
+              <div class="field">
+                <label>ID Inscripción</label>
+                <input type="number" id="cal-inscripcion" min="1" required />
+              </div>
+              <div class="field">
+                <label>Parcial (1, 2 o 3)</label>
+                <input type="number" id="cal-parcial" value="1" min="1" max="3" required />
+              </div>
+              <div class="field">
+                <label>Calificación (0 - 100)</label>
+                <input type="number" id="cal-nota" min="0" max="100" step="0.01" required />
+              </div>
+              <button type="submit" class="btn">Guardar Nota</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN ADMIN 3: CONSULTAS Y VISTAS SQL -->
+      <div id="tab-consultas" class="panel admin-tab hidden">
+        <h3>Consultas y Vistas SQL</h3>
+        <div class="filter-bar">
+          <button type="button" class="btn btn-light" onclick="cargarConsulta('estudiantes')">Estudiantes</button>
+          <button type="button" class="btn btn-light" onclick="cargarConsulta('cursos')">Cursos</button>
+          <button type="button" class="btn btn-light" onclick="cargarConsulta('inscripciones')">Inscripciones</button>
+          <button type="button" class="btn" onclick="cargarConsulta('promedios')">Vista: Promedios</button>
+          <button type="button" class="btn" onclick="cargarConsulta('cursos-inscritos')">Vista: Cursos e Inscritos</button>
+          <button type="button" class="btn" onclick="cargarConsulta('boleta-detallada')">Vista: Boleta Detallada</button>
+          <button type="button" class="btn btn-light" onclick="cargarConsulta('reprobados')">Vista: Reprobados</button>
+        </div>
+        <div class="table-scroll" id="admin-table-wrap">
+          <p style="padding: 16px; color: var(--muted); margin: 0;">Selecciona una tabla o vista.</p>
+        </div>
+      </div>
+
+      <!-- SECCIÓN ESTUDIANTE -->
+      <div id="tab-mi-boleta" class="panel hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+          <h3 style="margin: 0;">Mi Boleta Académica</h3>
+          <button type="button" class="btn" onclick="cargarMiBoleta()">Actualizar</button>
+        </div>
+        <p id="student-meta" style="color: var(--muted); margin: 0 0 14px 0;">Cargando...</p>
+        <div class="table-scroll" id="student-table-wrap"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/api';
+
+    function notify(msg, ok = true) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = `toast ${ok ? 'ok' : 'err'}`;
+      setTimeout(() => { el.className = 'toast'; }, 3500);
+    }
+
+    function authHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      };
+    }
+
+    // Tabs Login / Registro
+    const btnModeLogin = document.getElementById('btn-mode-login');
+    const btnModeReg = document.getElementById('btn-mode-reg');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+
+    btnModeLogin.addEventListener('click', () => {
+      btnModeLogin.classList.add('active');
+      btnModeReg.classList.remove('active');
+      loginForm.classList.remove('hidden');
+      registerForm.classList.add('hidden');
+    });
+
+    btnModeReg.addEventListener('click', () => {
+      btnModeReg.classList.add('active');
+      btnModeLogin.classList.remove('active');
+      registerForm.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+    });
+
+    document.getElementById('reg-rol').addEventListener('change', (e) => {
+      const isStudent = e.target.value === 'ESTUDIANTE';
+      document.getElementById('reg-nombre-box').classList.toggle('hidden', !isStudent);
+      document.getElementById('reg-fecha-box').classList.toggle('hidden', !isStudent);
+    });
+
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        rol: document.getElementById('reg-rol').value,
+        nombre: document.getElementById('reg-nombre').value.trim(),
+        email: document.getElementById('reg-email').value.trim(),
+        fechaNac: document.getElementById('reg-fecha').value || null,
+        password: document.getElementById('reg-password').value
+      };
+      const res = await fetch(`${API_URL}/registro`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        notify(data.mensaje, true);
+        registerForm.reset();
+        btnModeLogin.click();
+        document.getElementById('login-email').value = body.email;
+      } else {
+        notify(data.error || 'Error al registrar', false);
+      }
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      try {
+        const res = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) return notify(data.error || 'Credenciales inválidas', false);
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('rol', data.rol);
+        localStorage.setItem('email', data.email);
+        activarApp(data.email, data.rol);
+      } catch {
+        notify('Sin conexión con http://localhost:3000', false);
+      }
+    });
+
+    function activarApp(email, rol) {
+      document.getElementById('auth-view').classList.add('hidden');
+      document.getElementById('app-view').classList.remove('hidden');
+      document.getElementById('user-email-label').textContent = email;
+      document.getElementById('user-role-label').textContent = rol;
+
+      if (rol === 'ADMINISTRADOR') {
+        document.getElementById('admin-nav').classList.remove('hidden');
+        document.getElementById('student-nav').classList.add('hidden');
+        document.getElementById('tab-mi-boleta').classList.add('hidden');
+        abrirTabAdmin('tab-estudiantes', 'Gestión de Estudiantes');
+      } else {
+        document.getElementById('student-nav').classList.remove('hidden');
+        document.getElementById('admin-nav').classList.add('hidden');
+        document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
+        document.getElementById('tab-mi-boleta').classList.remove('hidden');
+        document.getElementById('page-heading').textContent = 'Mi Boleta';
+        cargarMiBoleta();
+      }
+    }
+
+    function abrirTabAdmin(tabId, titulo) {
+      document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById('page-heading').textContent = titulo;
+
+      document.querySelectorAll('#admin-nav .nav-item').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabId);
+      });
+
+      if (tabId === 'tab-consultas') {
+        cargarConsulta('promedios');
+      }
+    }
+
+    document.querySelectorAll('#admin-nav .nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        abrirTabAdmin(btn.dataset.tab, btn.textContent);
+      });
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.clear();
+      document.getElementById('app-view').classList.add('hidden');
+      document.getElementById('auth-view').classList.remove('hidden');
+      loginForm.reset();
+    });
+
+    function dibujarTabla(wrapId, rows) {
+      const wrap = document.getElementById(wrapId);
+      if (!rows || rows.length === 0) {
+        wrap.innerHTML = '<p style="padding: 16px; color: var(--muted); margin: 0;">Sin registros.</p>';
+        return;
+      }
+      const cols = Object.keys(rows[0]);
+      const head = `<thead><tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
+      const body = `<tbody>${rows.map(r => `<tr>${cols.map(c => `<td>${r[c] ?? ''}</td>`).join('')}</tr>`).join('')}</tbody>`;
+      wrap.innerHTML = `<table>${head}${body}</table>`;
+    }
+
+    document.getElementById('form-alta-estudiante').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        nombre: document.getElementById('est-nombre').value.trim(),
+        email: document.getElementById('est-email').value.trim(),
+        fechaNac: document.getElementById('est-fecha').value || null,
+        password: document.getElementById('est-pass').value || '123456'
+      };
+      const res = await fetch(`${API_URL}/estudiantes`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+      const data = await res.json();
+      if (res.ok) { notify(`Estudiante registrado (ID: ${data.id})`, true); e.target.reset(); }
+      else notify(data.error, false);
+    });
+
+    document.getElementById('form-baja-estudiante').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('baja-id').value;
+      const res = await fetch(`${API_URL}/estudiantes/${id}`, { method: 'DELETE', headers: authHeaders() });
+      const data = await res.json();
+      if (res.ok) { notify(data.mensaje, true); e.target.reset(); }
+      else notify(data.error, false);
+    });
+
+    document.getElementById('form-nuevo-curso').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        nombre: document.getElementById('cur-nombre').value.trim(),
+        creditos: Number(document.getElementById('cur-creditos').value)
+      };
+      const res = await fetch(`${API_URL}/cursos`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+      const data = await res.json();
+      if (res.ok) { notify(`Curso creado (ID: ${data.id})`, true); e.target.reset(); }
+      else notify(data.error, false);
+    });
+
+    document.getElementById('form-inscribir').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        estudianteId: Number(document.getElementById('ins-estudiante').value),
+        cursoId: Number(document.getElementById('ins-curso').value)
+      };
+      const res = await fetch(`${API_URL}/inscripciones`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+      const data = await res.json();
+      if (res.ok) { notify(`Inscripción creada (ID: ${data.id})`, true); e.target.reset(); }
+      else notify(data.error, false);
+    });
+
+    document.getElementById('form-calificacion').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {
+        inscripcionId: Number(document.getElementById('cal-inscripcion').value),
+        parcial: Number(document.getElementById('cal-parcial').value),
+        calificacion: Number(document.getElementById('cal-nota').value)
+      };
+      const res = await fetch(`${API_URL}/calificaciones`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+      const data = await res.json();
+      if (res.ok) { notify('Calificación guardada', true); e.target.reset(); }
+      else notify(data.error, false);
+    });
+
+    async function cargarConsulta(tipo) {
+      const res = await fetch(`${API_URL}/admin/consulta/${tipo}`, { headers: authHeaders() });
+      const data = await res.json();
+      if (res.ok) dibujarTabla('admin-table-wrap', data);
+      else notify(data.error || 'Error en consulta', false);
+    }
+
+    async function cargarMiBoleta() {
+      const res = await fetch(`${API_URL}/mi-boleta`, { headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById('student-meta').textContent = data.error || 'Sin perfil de estudiante';
+        return;
+      }
+      document.getElementById('student-meta').textContent =
+        `ID: ${data.id} | Alumno: ${data.nombre} | Correo: ${data.email}`;
+
+      const filas = [];
+      for (const ins of data.inscripciones) {
+        if (ins.calificaciones.length === 0) {
+          filas.push({ curso: ins.curso.nombre, creditos: ins.curso.creditos, parcial: '-', calificacion: '-' });
+        } else {
+          for (const cal of ins.calificaciones) {
+            filas.push({ curso: ins.curso.nombre, creditos: ins.curso.creditos, parcial: cal.parcial, calificacion: cal.calificacion });
+          }
+        }
+      }
+      dibujarTabla('student-table-wrap', filas);
+    }
+
+    const token = localStorage.getItem('token');
+    const rol = localStorage.getItem('rol');
+    const email = localStorage.getItem('email');
+    if (token && rol && email) activarApp(email, rol);
+  </script>
+</body>
+</html>
